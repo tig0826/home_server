@@ -1,0 +1,8 @@
+- hosts: home-k8s, nas
+  become: yes
+  tasks:
+    - name: add pub key
+      authorized_key:
+        user: tig
+        state: present
+        key: "{{ lookup('file', '~/.ssh/home_key.pub') }}"
