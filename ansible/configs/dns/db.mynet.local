@@ -1,0 +1,16 @@
+$TTL 3600
+$ORIGIN mynet.local.
+@                IN      SOA ns root (
+                             2023032621 ; serial
+                             3600       ; refresh 1hr
+                             900        ; retry 15min
+                             604800     ; expire 1w
+                             86400      ; min 24hr
+)
+;
+                 IN      NS     ns.mynet.local.
+ns               IN      A      192.168.0.10
+rancher01        IN      A      192.168.0.100
+master01         IN      A      192.168.0.110
+worker01         IN      A      192.168.0.120
+nas01            IN      A      192.168.0.140

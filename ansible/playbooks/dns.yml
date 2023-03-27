@@ -1,0 +1,36 @@
+- hosts: dns
+  become: yes
+  tasks:
+  - name: bind install
+    apt:
+      name:
+        - bind9
+        - bind9utils
+  - name: copy named.conf
+    copy:
+      src: ~/workspace/home_server/ansible/configs/dns/named.conf
+      dest: /etc/bind/named.conf
+      owner: root
+      group: bind
+      mode: 0644
+  - name: copy zone file
+    copy:
+      src: ~/workspace/home_server/ansible/configs/dns/db.mynet.local
+      dest: /etc/bind/db.mynet.local
+      owner: root
+      group: bind
+      mode: 0644
+  - name: copy reverse zone file
+    copy:
+      src: ~/workspace/home_server/ansible/configs/dns/db.168.192
+      dest: /etc/bind/db.168.192
+      owner: root
+      group: bind
+      mode: 0644
+  - name: restart named
+    systemd:
+      name: named
+      state: restarted
+      daemon_reload: yes
+      enabled: yes
+    become: yes
