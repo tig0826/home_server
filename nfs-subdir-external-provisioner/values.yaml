@@ -9,7 +9,7 @@ imagePullSecrets: []
 
 nfs:
   server: 192.168.0.140
-  path: /nfs-storage
+  path: /var/nfs/k8s-home
   mountOptions:
   volumeName: nfs-subdir-external-provisioner-root
   # Reclaim policy for the main nfs volume
