@@ -14,3 +14,5 @@ rancher01        IN      A      192.168.0.100
 master01         IN      A      192.168.0.110
 worker01         IN      A      192.168.0.120
 nas01            IN      A      192.168.0.140
+redash           IN      A      192.168.0.153
+prefect          IN      A      192.168.0.153
