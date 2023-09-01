@@ -1,0 +1,7 @@
+- hosts: home-k8s
+  become: yes
+  tasks:
+  - name: nfs-common install
+    apt:
+      name:
+        - nfs-common
