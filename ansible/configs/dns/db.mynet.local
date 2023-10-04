@@ -16,3 +16,4 @@ worker01         IN      A      192.168.0.120
 nas01            IN      A      192.168.0.140
 redash           IN      A      192.168.0.153
 prefect          IN      A      192.168.0.153
+postgresql       IN      A      192.168.0.151
