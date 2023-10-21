@@ -18,6 +18,7 @@ chromedriver-binary = "^105.0.5195"
 psycopg2 = "^2.9.8"
 sqlalchemy = "^2.0.21"
 prefect = "^2.13.4"
+prefect-github = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 ipykernel = "^6.15.2"

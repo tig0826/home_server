@@ -759,6 +759,17 @@ reauth = ["pyu2f (>=0.1.5)"]
 requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
+name = "graphql-core"
+version = "3.2.3"
+description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
+optional = false
+python-versions = ">=3.6,<4"
+files = [
+    {file = "graphql-core-3.2.3.tar.gz", hash = "sha256:06d2aad0ac723e35b1cb47885d3e5c45e956a53bc1b209a9fc5369007fe46676"},
+    {file = "graphql_core-3.2.3-py3-none-any.whl", hash = "sha256:5766780452bd5ec8ba133f8bf287dc92713e3868ddd83aee4faab9fc3e303dc3"},
+]
+
+[[package]]
 name = "graphviz"
 version = "0.20.1"
 description = "Simple Python interface for Graphviz"
@@ -1758,6 +1769,24 @@ websockets = ">=10.4"
 dev = ["cairosvg", "flaky", "ipython", "ipython (==8.12.*)", "jinja2", "mike", "mkdocs", "mkdocs-gen-files", "mkdocs-material", "mkdocstrings-python", "mock", "moto", "mypy", "numpy", "pillow", "pre-commit", "pytest (>7)", "pytest-asyncio (>=0.18.2)", "pytest-benchmark", "pytest-cov", "pytest-env", "pytest-flakefinder", "pytest-timeout", "pytest-xdist", "pytkdocs (>=0.14.2)", "pyyaml", "requests", "respx", "ruff", "setuptools (!=60.9.0)", "virtualenv", "watchfiles"]
 
 [[package]]
+name = "prefect-github"
+version = "0.2.0"
+description = "Prefect integrations interacting with GitHub"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "prefect-github-0.2.0.tar.gz", hash = "sha256:7ec16f6778c44ba303bbf14e2ad95e1574ec84fee8e822e4f5d1e8f4b62cecd6"},
+    {file = "prefect_github-0.2.0-py3-none-any.whl", hash = "sha256:8485dc600cf6de728e0b2c93b41a8de046923bfa67ed800b59414f85c494f684"},
+]
+
+[package.dependencies]
+prefect = ">=2.0.0"
+sgqlc = ">=15.0"
+
+[package.extras]
+dev = ["black", "coverage", "flake8", "interrogate", "isort", "mkdocs", "mkdocs-gen-files", "mkdocs-material", "mkdocstrings[python]", "mock", "mypy", "pillow", "pre-commit", "pytest", "pytest-asyncio"]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.39"
 description = "Library for building powerful interactive command lines in Python"
@@ -2590,6 +2619,24 @@ testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[l
 testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.1)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "sgqlc"
+version = "16.3"
+description = "Simple GraphQL Client"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "sgqlc-16.3-py3-none-any.whl", hash = "sha256:89d468386a4ba4b5ade991623228b6fb0a25bea1f25643ccac130fb3ef565b72"},
+    {file = "sgqlc-16.3.tar.gz", hash = "sha256:be08857775aa3e65ef7b2c1f0cdcc65dd5794907b162b393c189187fee664558"},
+]
+
+[package.dependencies]
+graphql-core = ">=3.1.7,<4.0.0"
+
+[package.extras]
+requests = ["requests"]
+websocket = ["websocket-client"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -3073,4 +3120,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c6b6ad0b9bd001ecc2c80a5fb85bcc92fa34d4da6c6c9b8536b74050b8fac821"
+content-hash = "0d9d41a56c4a358440c82f78d55a30d11cb57ca54b9f53203ab158f52d28d087"
