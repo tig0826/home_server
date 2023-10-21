@@ -1,6 +1,7 @@
 #a   -*- coding: utf-8 -*-
 
 import openpyxl
+import logging
 import pandas as pd
 from prefect import flow, task
 import psycopg2
@@ -8,6 +9,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from sqlalchemy import create_engine
 import time
 from time import sleep
@@ -42,7 +46,7 @@ def login_dqx():
     driver = webdriver.Chrome(service=service,options=options)
     # 検索先のURL
     driver.get('https://hiroba.dqx.jp/sc/search/')
-    time.sleep(1)
+    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'sqexid')))
     secret_block_user = Secret.load("dqx-user")
     dqx_user = secret_block_user.get()
     secret_block_passwd = Secret.load("dqx-passwd")
@@ -54,12 +58,11 @@ def login_dqx():
     s.send_keys(dqx_passwd)
     # ログインボタンクリック
     driver.find_element(By.XPATH,'//*[@id="login-button"]').click()
-    time.sleep(1)
+    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'welcome_box')))
     driver.find_element(By.XPATH,'//*[@id="welcome_box"]/div[2]/a').click()
-    time.sleep(0.5)
+    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'contentArea')))
     driver.find_element(By.XPATH,'//*[@id="contentArea"]/div/div[2]/form/table/tbody/tr[2]/td[3]/a').click()
     # 検索
-    time.sleep(2)
     return driver
 
 
@@ -71,30 +74,50 @@ def search_item(driver, search_word):
     # 検索するアイテム名を格納
     print(f"search {search_word}")
     # 検索フォームに入力
-    time.sleep(1)
+    time.sleep(2)
+    try:
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'searchword')))
+    except TimeoutException as e:
+        driver.find_element(By.XPATH, '//*[@id="historyBack"]').click()
+        logging.error(f"TimeoutException occurred: {e}. Element with ID 'searchword' was not found")
     s = driver.find_element(By.XPATH, '//*[@id="searchword"]').clear()
     time.sleep(1)
     s = driver.find_element(By.XPATH, '//*[@id="searchword"]')
-    time.sleep(1)
+    time.sleep(3)
     s.send_keys(search_word)
     time.sleep(1)
+    try:
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'searchBoxArea')))
+    except TimeoutException as e:
+        driver.find_element(By.XPATH, '//*[@id="historyBack"]').click()
+        logging.error(f"TimeoutException occurred: {e}. Element with ID 'searchBoxArea' was not found")
     driver.find_element(By.XPATH, '//*[@id="searchBoxArea"]/form/p[2]/input').click()
-    time.sleep(1)
+    try:
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'searchTabItem')))
+    except TimeoutException as e:
+        driver.find_element(By.XPATH, '//*[@id="historyBack"]').click()
+        logging.error(f"TimeoutException occurred: {e}. Element with ID 'searchTabItem' was not found")
+    time.sleep(3)
     driver.find_element(By.XPATH, '//*[@id="searchTabItem"]').click()
-    time.sleep(1)
+    time.sleep(3)
     print("find_elements item list")
     while(True):
         # 出品データの取得
+        time.sleep(3)
         elements = driver.find_elements(By.TAG_NAME, 'tr')
         # リストに格納
         for elem in elements:
             exhibition_data.append(elem.text.split())
-        if len(driver.find_elements(By.XPATH, '//*[@class="next"]')) > 0 :
+        try:
+            WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located)
+        except TimeoutException as e:
+            driver.find_element(By.XPATH, '//*[@id="historyBack"]').click()
+            logging.error(f"TimeoutException occurred: {e}. Element with ID 'next' was not found")
+        if len(driver.find_elements(By.XPATH, '//*[@class="next"]')) > 0:
+            print("- click next")
             driver.find_element(By.XPATH, '//*[@class="next"]').click()
-            time.sleep(2)
         else:
             break
-    time.sleep(5)
     return exhibition_data
 
 
