@@ -110,4 +110,3 @@ if __name__ == "__main__":
     # get_itemname.serve(name="get_itemname",cron="0 1 15 * *")
     get_itemname.serve(name="dqx-get-itemname")
 
-
