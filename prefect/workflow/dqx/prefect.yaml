@@ -1,0 +1,52 @@
+# Generic metadata about this project
+name: flows
+prefect-version: 2.14.3
+
+# build section allows you to manage and build docker images
+build:
+- prefect_docker.deployments.steps.build_docker_image:
+    id: build-image
+    requires: prefect-docker>=0.4.0
+    image_name: '{{ $PREFECT_IMAGE_NAME }}'
+    tag: latest
+    dockerfile: ./Dockerfile
+    platform: linux/amd64
+
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push:
+- prefect_docker.deployments.steps.push_docker_image:
+    requires: prefect-docker>=0.4.0
+    image_name: '{{ build-image.image_name }}'
+    tag: '{{ build-image.tag }}'
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+pull:
+- prefect.deployments.steps.set_working_directory:
+    directory: /opt/prefect
+
+# the definitions section allows you to define reusable components for your deployments
+definitions:
+  tags:
+  - dqx
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+
+# the deployments section allows you to provide configuration for deploying flows
+deployments:
+- name: dqx_get_trade_history
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_trade_history/get_trade_history.py:get_trade_history
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
