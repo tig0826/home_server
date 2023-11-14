@@ -1,2 +1,5 @@
 ansible/.vault_password_file
-
+**/__pycache__/
+**/*.pyc
+**/.DS_Store
+**/*.whl
