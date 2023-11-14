@@ -162,10 +162,6 @@ def save_to_postgresql(df, table_name, schema_name):
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
 
-# flow_run_config = KubernetesRun(
-#         job_template_path = 'job_template.yaml',
-#         )
-
 @flow(log_prints=True)
 def get_trade_history():
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
