@@ -7,7 +7,7 @@ build:
 - prefect_docker.deployments.steps.build_docker_image:
     id: build-image
     requires: prefect-docker>=0.4.0
-    image_name: '{{ $PREFECT_IMAGE_NAME }}'
+    image_name: '{{ prefect.variables.dqx_image_name }}'
     tag: latest
     dockerfile: ./Dockerfile
     platform: linux/amd64
@@ -49,4 +49,16 @@ deployments:
   version:
   description:
   parameters: {}
-
+- name: dqx_get_price
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
