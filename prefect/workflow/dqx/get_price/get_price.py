@@ -3,6 +3,8 @@ import logging
 
 import pandas as pd
 from prefect import flow, task
+from prefect.blocks.system import Secret
+from prefect_dask.task_runners import DaskTaskRunner
 import psycopg2
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -14,13 +16,11 @@ from selenium.common.exceptions import TimeoutException
 from sqlalchemy import create_engine
 import time
 from time import sleep
-from prefect.blocks.system import Secret
 import datetime
 from datetime import datetime, timedelta, timezone
 
 
-
-@task(name="login dqx", retries=3)
+@task(name="login dqx", retries=3, retry_delay_seconds=3)
 def login_dqx(url):
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -61,7 +61,7 @@ def login_dqx(url):
     # 検索
     return driver
 
-@task(name="get exhibit price", retries=3)
+@task(name="get exhibit price", retries=3, retry_delay_seconds=3)
 def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour):
     exhibition_data = []
     pagenum = 0
@@ -103,7 +103,7 @@ def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, to
     df = pd.DataFrame(exhibition_data, columns=["アイテム名", "取得日", "取得時刻", "種類", "カテゴリ", "できのよさ", "個数", "価格", "出品日", "出品期限", "取引相手"])
     return df
 
-@task(name="load from postgresql", retries=5)
+@task(name="load from postgresql", retries=5, retry_delay_seconds=5)
 def load_from_postgresql(sql):
     # 収集したデータを保存
     print('-- load from postgresql ---')
@@ -119,7 +119,7 @@ def load_from_postgresql(sql):
     df = pd.read_sql(sql, con=engine)
     return df
 
-@task(name="save to postgresql", retries=5)
+@task(name="save to postgresql", retries=5, retry_delay_seconds=5)
 def save_to_postgresql(df, table_name, schema_name):
     # 収集したデータを保存
     print('-- save to postgresql ---')
@@ -135,7 +135,7 @@ def save_to_postgresql(df, table_name, schema_name):
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
 
-@flow(log_prints=True)
+@flow(log_prints=True, task_runner=DaskTaskRunner())
 def get_price():
     JST = timezone(timedelta(hours=+9), 'JST')
     today = datetime.now(JST).strftime('%Y/%m/%d')
@@ -165,6 +165,8 @@ def get_price():
         driver = login_dqx.submit(url)
         df_price = get_exhibit_price.submit(driver, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql.submit(df_price, item_name, schema_name)
+
+
 
 if __name__ == "__main__":
     get_price.serve(name="dqx-get-price")
