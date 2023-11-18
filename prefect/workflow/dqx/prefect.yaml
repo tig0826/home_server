@@ -39,7 +39,7 @@ deployments:
 - name: dqx_get_trade_history
   tags:
   - dqx
-  schedule:
+  schedule: 59 23 * * *
   entrypoint: get_trade_history/get_trade_history.py:get_trade_history
   work_pool:
     name: kubernetes
@@ -49,11 +49,12 @@ deployments:
   version:
   description:
   parameters: {}
+
 - name: dqx_get_price
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price
+  entrypoint: get_price/get_price.py:main
   work_pool:
     name: kubernetes
     job_variables:

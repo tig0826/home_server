@@ -112,7 +112,7 @@ def load_from_postgresql(sql):
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "postgresql.mynet",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
@@ -128,20 +128,27 @@ def save_to_postgresql(df, table_name, schema_name):
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "postgresql.mynet",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
 
+@flow(flow_run_name="{item_name}", log_prints=True, task_runner=DaskTaskRunner())
+def get_price(url, item_name, item_type, item_category, item_hash, today, hour, schema_name):
+    driver = login_dqx.submit(url)
+    df_price = get_exhibit_price.submit(driver, item_name, item_type, item_category, item_hash, today, hour)
+    save_to_postgresql.submit(df_price, item_name, schema_name)
+
+
 @flow(log_prints=True, task_runner=DaskTaskRunner())
-def get_price():
+def main():
     JST = timezone(timedelta(hours=+9), 'JST')
     today = datetime.now(JST).strftime('%Y/%m/%d')
     hour = datetime.now(JST).strftime('%H')
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name_item_name = "item_name"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon")
     df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor")
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu")
@@ -150,24 +157,38 @@ def get_price():
     for _, row in df_weapon.iterrows():
         item_type = "武器"
         item_name, item_category, item_hash = row
-        driver = login_dqx.submit(url)
-        df_price = get_exhibit_price.submit(driver, item_name, item_type, item_category, item_hash, today, hour)
-        save_to_postgresql.submit(df_price, item_name, schema_name)
+        get_price(url = url,
+                  item_name = item_name,
+                  item_type = item_type,
+                  item_category = item_category,
+                  item_hash = item_hash,
+                  today = today,
+                  hour = hour,
+                  schema_name = schema_name)
     for _, row in df_armor.iterrows():
         item_type = "防具"
         item_name, item_category, item_hash = row
-        driver = login_dqx.submit(url)
-        df_price = get_exhibit_price.submit(driver, item_name, item_type, item_category, item_hash, today, hour)
-        save_to_postgresql.submit(df_price, item_name,schema_name)
+        get_price(url = url,
+                  item_name = item_name,
+                  item_type = item_type,
+                  item_category = item_category,
+                  item_hash = item_hash,
+                  today = today,
+                  hour = hour,
+                  schema_name = schema_name)
     for _, row in df_dougu.iterrows():
         item_type = "道具"
         item_name, item_category, item_hash = row
-        driver = login_dqx.submit(url)
-        df_price = get_exhibit_price.submit(driver, item_name, item_type, item_category, item_hash, today, hour)
-        save_to_postgresql.submit(df_price, item_name, schema_name)
-
+        get_price(url = url,
+                  item_name = item_name,
+                  item_type = item_type,
+                  item_category = item_category,
+                  item_hash = item_hash,
+                  today = today,
+                  hour = hour,
+                  schema_name = schema_name)
 
 
 if __name__ == "__main__":
-    get_price.serve(name="dqx-get-price")
+    main.serve(name="dqx-get-price")
 
