@@ -155,7 +155,7 @@ def save_to_postgresql(df, table_name, schema_name):
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet",
+            "host": "192.168.0.151",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))

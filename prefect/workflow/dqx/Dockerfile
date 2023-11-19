@@ -1,5 +1,5 @@
 # ベースイメージを指定
-FROM python:3.11.6
+FROM python:3.11.6-slim
 
 ENV POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_CREATE=false \
@@ -15,10 +15,14 @@ ENV CHROME_DRIVER_PATH="/opt/prefect/chromedriver-linux64/chromedriver"
 
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
+
+
 RUN pip install poetry
 # 必要なライブラリをインストール
 RUN apt-get update && apt-get install -y \
     chromium-driver \
+    libpq-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # 必要なPythonパッケージをインストール
