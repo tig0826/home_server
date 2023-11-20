@@ -50,11 +50,39 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price
+- name: dqx_get_price_weapon
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:main
+  entrypoint: get_price/get_price.py:get_price_weapon
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu
   work_pool:
     name: kubernetes
     job_variables:

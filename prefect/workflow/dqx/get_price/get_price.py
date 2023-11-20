@@ -138,56 +138,65 @@ def save_to_postgresql(df, table_name, schema_name):
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_weapon(url, df_weapon, today, hour):
+async def get_price_weapon():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
     schema_name = "price"
     item_type = "武器"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon")
     for _, row in df_weapon.iterrows():
         item_name, item_category, item_hash = row
         driver = login_dqx(url)
         df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
         driver.quit()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_armor(url, df_armor, today, hour):
+async def get_price_armor():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
     schema_name = "price"
     item_type = "防具"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor")
     for _, row in df_armor.iterrows():
         item_name, item_category, item_hash = row
         driver = login_dqx(url)
         df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
         driver.quit()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu(url, df_dougu, today, hour):
+async def get_price_dougu():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
     schema_name = "price"
     item_type = "道具"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu")
     for _, row in df_dougu.iterrows():
         item_name, item_category, item_hash = row
         driver = login_dqx(url)
         df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
         driver.quit()
-    await asyncio.sleep(1)
+    #await asyncio.sleep(1)
 
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def main():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon")
-    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor")
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu")
-    # 購入情報を取得
-    parallel_subflows = [get_price_weapon(url, df_weapon, today, hour),
-                         get_price_armor(url, df_armor, today, hour),
-                         get_price_dougu(url, df_dougu, today, hour)]
+    parallel_subflows = [get_price_weapon(),
+                         get_price_armor(),
+                         get_price_dougu()]
     await asyncio.gather(*parallel_subflows)
 
 
