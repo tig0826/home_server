@@ -17,7 +17,6 @@ import datetime
 from datetime import datetime, timedelta, timezone
 
 
-@task(name="login dqx", retries=3, retry_delay_seconds=3, tags=['dqx-login'])
 def login_dqx(url):
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -39,7 +38,7 @@ def login_dqx(url):
     driver = webdriver.Chrome(service=service, options=options)
     # 検索先のURL
     driver.get(url)
-    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'sqexid')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, 'sqexid')))
     secret_block_user = Secret.load("dqx-user")
     dqx_user = secret_block_user.get()
     secret_block_passwd = Secret.load("dqx-passwd")
@@ -50,15 +49,16 @@ def login_dqx(url):
     s = driver.find_element(By.XPATH, '//*[@id="password"]')
     s.send_keys(dqx_passwd)
     # ログインボタンクリック
+    sleep(1.5)
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, 'login-button')))
     driver.find_element(By.XPATH, '//*[@id="login-button"]').click()
-    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'welcome_box')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, 'welcome_box')))
     driver.find_element(By.XPATH, '//*[@id="welcome_box"]/div[2]/a').click()
-    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, 'contentArea')))
+    WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, 'contentArea')))
     driver.find_element(By.XPATH, '//*[@id="contentArea"]/div/div[2]/form/table/tbody/tr[2]/td[3]/a').click()
     # 検索
     return driver
 
-@task(name="get exhibit price", retries=5, retry_delay_seconds=3, tags=['dqx-get-exhibit-price'])
 def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour):
     print(f"-- search item name {item_name} ---")
     exhibition_data = []
@@ -85,7 +85,10 @@ def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, to
                 item_quality = first_col_list[1].split("：")[1]
                 # 二列目の要素を整形 出品数と値段と出品者
                 second_col_list = cols[1].text.split('\n')
-                item_count, item_price, trade_partner = second_col_list
+                if len(second_col_list) == 4:
+                    item_count, item_price, unit_price, trade_partner = second_col_list
+                else:
+                    item_count, item_price, trade_partner = second_col_list
                 item_count = item_count.split("：")[1].rstrip("こ")
                 item_count = int(item_count)
                 item_price = item_price.split("：")[1]
@@ -137,6 +140,12 @@ def save_to_postgresql(df, table_name, schema_name):
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
+@task(name="wrap_task", retries=5, retry_delay_seconds=5)
+def wrap_task_get_price(url, item_name, item_type, item_category, item_hash, today, hour):
+    driver = login_dqx(url)
+    df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
+    return df_price
+
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_weapon():
     JST = timezone(timedelta(hours=+9), 'JST')
@@ -149,11 +158,8 @@ async def get_price_weapon():
     df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon")
     for _, row in df_weapon.iterrows():
         item_name, item_category, item_hash = row
-        driver = login_dqx(url)
-        df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
+        df_price = wrap_task_get_price(url, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
-        driver.quit()
-    #await asyncio.sleep(1)
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_armor():
@@ -167,11 +173,8 @@ async def get_price_armor():
     df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor")
     for _, row in df_armor.iterrows():
         item_name, item_category, item_hash = row
-        driver = login_dqx(url)
-        df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
+        df_price = wrap_task_get_price(url, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
-        driver.quit()
-    #await asyncio.sleep(1)
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_dougu():
@@ -185,12 +188,8 @@ async def get_price_dougu():
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu")
     for _, row in df_dougu.iterrows():
         item_name, item_category, item_hash = row
-        driver = login_dqx(url)
-        df_price = get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour)
+        df_price = wrap_task_get_price(url, item_name, item_type, item_category, item_hash, today, hour)
         save_to_postgresql(df_price, item_name, schema_name)
-        driver.quit()
-    #await asyncio.sleep(1)
-
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def main():
