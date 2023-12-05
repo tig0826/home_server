@@ -17,6 +17,7 @@ import datetime
 from datetime import datetime, timedelta, timezone
 
 
+@task(name="login dqx", retries=5, retry_delay_seconds=5)
 def login_dqx(url):
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -63,6 +64,7 @@ def login_dqx(url):
     finally:
         return driver
 
+@task(name="get exhibit price", retries=5, retry_delay_seconds=5)
 def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, today, hour):
     print(f"-- search item name {item_name} ---")
     exhibition_data = []
@@ -128,7 +130,7 @@ def load_from_postgresql(sql):
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
     df = pd.read_sql(sql, con=engine)
     return df
-
+@task(name="save to postgresql", retries=5, retry_delay_seconds=5)
 def save_to_postgresql(df, table_name, schema_name):
     # 収集したデータを保存
     print(f'-- save to postgresql {schema_name}.{table_name} ---')
@@ -143,8 +145,6 @@ def save_to_postgresql(df, table_name, schema_name):
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
-
-@task(name="wrap_task", retries=5, retry_delay_seconds=5)
 def wrap_task_get_price(df, url, item_type, today, hour):
     schema_name = "price"
     df_price_all = pd.DataFrame(columns=["アイテム名", "取得日", "取得時刻", "種類", "カテゴリ", "できのよさ", "個数", "価格", "出品日", "出品期限", "取引相手"])
@@ -213,6 +213,507 @@ async def get_price_dougu():
         item_type = "道具"
         wrap_task_get_price.submit(df, url, item_type, today, hour)
 
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_club():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "棍"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    print(df_weapon)
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    print(df_weapon_list)
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_two_handed_staff():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "両手杖"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_dagger():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "短剣"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_stick():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "スティック"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_scythe():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "鎌"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_whip():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "鞭"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_spear():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "槍"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_hammer():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "ハンマー"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_one_handed_sword():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "片手剣"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_boomerang():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "ブーメラン"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_claw():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "爪"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_axe():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "斧"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_two_handed_sword():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "両手剣"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_fan():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "扇"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon_bow():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    item_type = "武器"
+    item_category = "弓"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_weapon = load_from_postgresql(f"select * from {schema_name_item_name}.name_weapon where カテゴリ = '{item_category}'")
+    group_weapon  = df_weapon.groupby('カテゴリ')
+    df_weapon_list = [group_data for _, group_data in group_weapon]
+    for df in df_weapon_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_body_top():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "体上"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_body_bottom():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "体下"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_head():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "頭"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_arm():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "腕"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_leg():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "足"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor_shield():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "防具"
+    item_category = "盾"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_armor  = load_from_postgresql(f"select * from {schema_name_item_name}.name_armor where カテゴリ = '{item_category}'")
+    group_armor  = df_armor.groupby('カテゴリ')
+    df_armor_list = [group_data for _, group_data in group_armor]
+    for df in df_armor_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_seed():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "タネ"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_consumable_item():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "消費アイテム"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_scout_book():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "スカウトの書"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_cooking():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "料理"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_pose_book():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "ポーズ書"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_fishing_rod():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "釣りざお"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_recipe():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "レシピ"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_gesture_book():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "しぐさ書"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_seal():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "印章"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_material():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "素材"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_dougu_lure():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
+    schema_name = "price"
+    item_type = "道具"
+    item_category = "ルアー"
+    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
+    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
+    group_dougu  = df_dougu.groupby('カテゴリ')
+    df_dougu_list = [group_data for _, group_data in group_dougu]
+    for df in df_dougu_list:
+        wrap_task_get_price(df, url, item_type, today, hour)
+
+
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def main():
@@ -230,15 +731,18 @@ async def main():
     df_weapon_list = [group_data for _, group_data in group_weapon]
     df_armor_list = [group_data for _, group_data in group_armor]
     df_dougu_list = [group_data for _, group_data in group_dougu]
+    flow_list  = []
     for df in df_weapon_list:
         item_type = "武器"
-        wrap_task_get_price.submit(df, url, item_type, today, hour)
+        flow_list.append(wrap_task_get_price(df, url, item_type, today, hour))
     for df in df_armor_list:
         item_type = "防具"
-        wrap_task_get_price.submit(df, url, item_type, today, hour)
+        flow_list.append(wrap_task_get_price(df, url, item_type, today, hour))
     for df in df_dougu_list:
         item_type = "道具"
-        wrap_task_get_price.submit(df, url, item_type, today, hour)
+        flow_list.append(wrap_task_get_price(df, url, item_type, today, hour))
+    await asyncio.gather(*flow_list)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
