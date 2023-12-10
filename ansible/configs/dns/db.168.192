@@ -1,6 +1,6 @@
 $TTL 3600
 @ORIGIN 0.168.192.in-addr.arpa.
-@                IN      SOA dnstest.mynet.local. root.mynet.local. (
+@                IN      SOA dnstest.mynet. root.mynet. (
                              2023032621 ; serial
                              3600       ; refresh 1hr
                              900        ; retry 15min
@@ -8,8 +8,11 @@ $TTL 3600
                              86400      ; min 24hr
 )
 
-                 IN      NS     dnstest.mynet.local.
-100              IN      PTR    rancher01.mynet.local.
-110              IN      PTR    master01.mynet.local.
-120              IN      PTR    worker01.mynet.local.
-140              IN      PTR    nas01.mynet.local.
+                 IN      NS     dnstest.mynet.
+100              IN      PTR    rancher01.mynet.
+110              IN      PTR    master01.mynet.
+120              IN      PTR    worker01.mynet.
+121              IN      PTR    worker02.mynet.
+122              IN      PTR    worker03.mynet.
+123              IN      PTR    worker04.mynet.
+140              IN      PTR    nas01.mynet.
