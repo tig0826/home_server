@@ -7,7 +7,7 @@ build:
 - prefect_docker.deployments.steps.build_docker_image:
     id: build-image
     requires: prefect-docker>=0.4.0
-    image_name: '{{ $PREFECT_IMAGE_NAME }}'
+    image_name: '{{ prefect.variables.dqx_image_name }}'
     tag: latest
     dockerfile: ./Dockerfile
     platform: linux/amd64
@@ -36,11 +36,25 @@ definitions:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-- name: dqx_get_trade_history
+# - name: dqx_get_trade_history
+#   tags:
+#   - dqx
+#   schedule: 59 23 * * *
+#   entrypoint: get_trade_history/get_trade_history.py:get_trade_history
+#   work_pool:
+#     name: kubernetes
+#     job_variables:
+#       image: '{{ build-image.image }}'
+#     work_queue_name:
+#   version:
+#   description:
+#   parameters: {}
+
+- name: dqx_get_price_weapon_club
   tags:
   - dqx
   schedule:
-  entrypoint: get_trade_history/get_trade_history.py:get_trade_history
+  entrypoint: get_price/get_price.py:get_price_weapon_club
   work_pool:
     name: kubernetes
     job_variables:
@@ -50,3 +64,496 @@ deployments:
   description:
   parameters: {}
 
+- name: dqx_get_price_weapon_two_handed_staff
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_two_handed_staff
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_dagger
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_dagger
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_stick
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_stick
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_scythe
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_scythe
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_whip
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_whip
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_spear
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_spear
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_hammer
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_hammer
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_one_handed_sword
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_one_handed_sword
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_boomerang
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_boomerang
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_claw
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_claw
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_axe
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_axe
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_two_handed_sword
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_two_handed_sword
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_fan
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_fan
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_weapon_bow
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_weapon_bow
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+
+- name: dqx_get_price_armor_body_top
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_body_top
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_body_bottom
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_body_bottom
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_head
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_head
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_arm
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_arm
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_leg
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_leg
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_shield
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_shield
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_seed
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_seed
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_consumable_item
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_scout_book
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_scout_book
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_cooking
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_cooking
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_pose_book
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_pose_book
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_fishing_rod
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_fishing_rod
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_recipe
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_gesture_book
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_gesture_book
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_seal
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_seal
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_material
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_lure
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_dougu_lure
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+
+
+
+# - name: dqx_get_price_weapon
+#   tags:
+#   - dqx
+#   schedule:
+#   entrypoint: get_price/get_price.py:get_price_weapon
+#   work_pool:
+#     name: kubernetes
+#     job_variables:
+#       image: '{{ build-image.image }}'
+#     work_queue_name:
+#   version:
+#   description:
+#   parameters: {}
+
+# - name: dqx_get_price_armor
+#   tags:
+#   - dqx
+#   schedule:
+#   entrypoint: get_price/get_price.py:get_price_armor
+#   work_pool:
+#     name: kubernetes
+#     job_variables:
+#       image: '{{ build-image.image }}'
+#     work_queue_name:
+#   version:
+#   description:
+#   parameters: {}
+
+# - name: dqx_get_price_dougu
+#   tags:
+#   - dqx
+#   schedule:
+#   entrypoint: get_price/get_price.py:get_price_dougu
+#   work_pool:
+#     name: kubernetes
+#     job_variables:
+#       image: '{{ build-image.image }}'
+#     work_queue_name:
+#   version:
+#   description:
+#   parameters: {}
+
+# - name: dqx_get_price
+#   tags:
+#   - dqx
+#   schedule:
+#   entrypoint: get_price/get_price.py:main
+#   work_pool:
+#     name: kubernetes
+#     job_variables:
+#       image: '{{ build-image.image }}'
+#     work_queue_name:
+#   version:
+#   description:
+#   parameters: {}

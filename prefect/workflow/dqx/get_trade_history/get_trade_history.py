@@ -23,7 +23,7 @@ import datetime
 from datetime import datetime
 
 
-@task(retries=3)
+@task(retries=3, retry_delay_seconds=5)
 def login_dqx(url):
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
@@ -64,7 +64,7 @@ def login_dqx(url):
     # 検索
     return driver
 
-@task(retries=3)
+@task(retries=3, retry_delay_seconds=5)
 def get_trade_buy(driver):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/purchasehistory/page/{pagenum}"
@@ -100,7 +100,7 @@ def get_trade_buy(driver):
     df = pd.DataFrame(exhibition_data, columns=["アイテム名", "種類", "できのよさ", "個数", "価格", "取引日", "取引相手"])
     return df
 
-@task(retries=3)
+@task(retries=3, retry_delay_seconds=5)
 def get_trade_sell(driver):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/page/{pagenum}"
@@ -146,7 +146,7 @@ def get_trade_sell(driver):
     df = pd.DataFrame(exhibition_data, columns=["アイテム名", "種類", "できのよさ", "個数", "価格", "取引日", "取引相手"])
     return df
 
-@task(retries=3)
+@task(retries=3, retry_delay_seconds=5)
 def save_to_postgresql(df, table_name, schema_name):
     # 収集したデータを保存
     print('-- save to postgresql ---')
@@ -155,16 +155,12 @@ def save_to_postgresql(df, table_name, schema_name):
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "192.168.0.151",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists='append', index=False)
 
-
-# flow_run_config = KubernetesRun(
-#         job_template_path = 'job_template.yaml',
-#         )
 
 @flow(log_prints=True)
 def get_trade_history():
