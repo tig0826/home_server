@@ -36,19 +36,19 @@ definitions:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
-# - name: dqx_get_trade_history
-#   tags:
-#   - dqx
-#   schedule: 59 23 * * *
-#   entrypoint: get_trade_history/get_trade_history.py:get_trade_history
-#   work_pool:
-#     name: kubernetes
-#     job_variables:
-#       image: '{{ build-image.image }}'
-#     work_queue_name:
-#   version:
-#   description:
-#   parameters: {}
+- name: dqx_get_trade_history
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_trade_history/get_trade_history.py:get_trade_history
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
 
 - name: dqx_get_price_weapon_club
   tags:

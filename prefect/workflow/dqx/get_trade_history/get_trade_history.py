@@ -13,14 +13,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, schema
 import time
 from time import sleep
 # from prefect_github.repository import GitHubRepository
 from prefect.blocks.system import Secret
 #from prefect.run_config import KubernetesRun
 import datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 @task(retries=3, retry_delay_seconds=5)
@@ -69,9 +69,9 @@ def get_trade_buy(driver):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/purchasehistory/page/{pagenum}"
     pagenum = 0
-    today = datetime.now().strftime('%Y/%m/%d')
-    trade_day = today
-    while trade_day == today:
+    yesterday = (datetime.now()-timedelta(1)).strftime('%Y/%m/%d')
+    trade_day = yesterday
+    while trade_day == yesterday:
         sleep(2)
         driver.get(url.format(pagenum=pagenum))
         table = driver.find_element(By.XPATH, '//*[@class="bazaarTable purchase"]')
@@ -94,7 +94,7 @@ def get_trade_buy(driver):
             trade_day, trade_partner = cols[3].text.split('\n')
             trade_day = trade_day.split("：")[1]
             trade_partner = trade_partner.split("：")[1]
-            if trade_day == today:
+            if trade_day == yesterday:
                 exhibition_data.append([item_name, item_type, item_quality, item_count, item_price, trade_day, trade_partner])
         pagenum += 1
     df = pd.DataFrame(exhibition_data, columns=["アイテム名", "種類", "できのよさ", "個数", "価格", "取引日", "取引相手"])
@@ -105,9 +105,9 @@ def get_trade_sell(driver):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/page/{pagenum}"
     pagenum = 0
-    today = datetime.now().strftime('%Y/%m/%d')
-    trade_day = today
-    while trade_day == today:
+    yesterday = (datetime.now()-timedelta(1)).strftime('%Y/%m/%d')
+    trade_day = yesterday
+    while trade_day == yesterday:
         driver.get(url.format(pagenum=pagenum))
         table = driver.find_element(By.XPATH, '//*[@class="bazaarTable entry"]')
         rows = table.find_elements(By.TAG_NAME, 'tr')
@@ -140,7 +140,7 @@ def get_trade_sell(driver):
                 trade_day, trade_result, trade_partner, recieve_day = forth_col_list
                 trade_day = trade_day.split("：")[1]
                 trade_partner = trade_partner.split("：")[1]
-                if trade_day == today:
+                if trade_day == yesterday:
                     exhibition_data.append([item_name, item_type, item_quality, item_count, item_price, trade_day, trade_partner])
         pagenum += 1
     df = pd.DataFrame(exhibition_data, columns=["アイテム名", "種類", "できのよさ", "個数", "価格", "取引日", "取引相手"])
