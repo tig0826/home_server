@@ -35,11 +35,44 @@ definitions:
       image: '{{ build-image.image }}'
 
 # the deployments section allows you to provide configuration for deploying flows
+
+# the deployments section allows you to provide configuration for deploying flows
 deployments:
+- name: dqx_get_itemname
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_itemname/get_itemname.py:get_itemname
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_item_hash
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_item_hash_hiroba/get_item_hash.py:get_item_hash
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
 - name: dqx_get_trade_history
   tags:
   - dqx
   schedule:
+    cron: 1 0 * * *
+    timezone: Asia/Tokyo
+    day_or: true
   entrypoint: get_trade_history/get_trade_history.py:get_trade_history
   work_pool:
     name: kubernetes
@@ -261,11 +294,11 @@ deployments:
   parameters: {}
 
 
-- name: dqx_get_price_armor_body_top
+- name: dqx_get_price_armor_body_top_1
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_body_top
+  entrypoint: get_price/get_price.py:get_price_armor_body_top_1
   work_pool:
     name: kubernetes
     job_variables:
@@ -275,11 +308,11 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_armor_body_bottom
+- name: dqx_get_price_armor_body_top_2
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_body_bottom
+  entrypoint: get_price/get_price.py:get_price_armor_body_top_2
   work_pool:
     name: kubernetes
     job_variables:
@@ -289,11 +322,11 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_armor_head
+- name: dqx_get_price_armor_body_top_3
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_head
+  entrypoint: get_price/get_price.py:get_price_armor_body_top_3
   work_pool:
     name: kubernetes
     job_variables:
@@ -303,11 +336,11 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_armor_arm
+- name: dqx_get_price_armor_body_top_4
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_arm
+  entrypoint: get_price/get_price.py:get_price_armor_body_top_4
   work_pool:
     name: kubernetes
     job_variables:
@@ -317,11 +350,11 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_armor_leg
+- name: dqx_get_price_armor_body_bottom_1
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_leg
+  entrypoint: get_price/get_price.py:get_price_armor_body_bottom_1
   work_pool:
     name: kubernetes
     job_variables:
@@ -331,11 +364,263 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_armor_shield
+- name: dqx_get_price_armor_body_bottom_2
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_armor_shield
+  entrypoint: get_price/get_price.py:get_price_armor_body_bottom_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_body_bottom_3
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_body_bottom_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_body_bottom_4
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_body_bottom_4
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_head_1
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_head_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_head_2
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_head_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_head_3
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_head_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_head_4
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_head_4
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_arm_1
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_arm_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_arm_2
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_arm_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_arm_3
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_arm_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_arm_4
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_arm_4
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_leg_1
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_leg_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_leg_2
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_leg_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_leg_3
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_leg_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_leg_4
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_leg_4
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_shield_1
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_shield_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_shield_2
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_shield_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_shield_3
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_shield_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_armor_shield_4
+  tags:
+  - dqx
+  schedule:
+  entrypoint: get_price/get_price.py:get_price_armor_shield_4
   work_pool:
     name: kubernetes
     job_variables:
@@ -349,6 +634,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_seed
   work_pool:
     name: kubernetes
@@ -359,11 +646,61 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_dougu_consumable_item
+- name: dqx_get_price_dougu_consumable_item_1
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_consumable_item_2
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_consumable_item_3
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_consumable_item_4
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_consumable_item_4
   work_pool:
     name: kubernetes
     job_variables:
@@ -377,6 +714,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_scout_book
   work_pool:
     name: kubernetes
@@ -391,6 +730,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_cooking
   work_pool:
     name: kubernetes
@@ -405,6 +746,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_pose_book
   work_pool:
     name: kubernetes
@@ -419,6 +762,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_fishing_rod
   work_pool:
     name: kubernetes
@@ -429,11 +774,77 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_dougu_recipe
+- name: dqx_get_price_dougu_recipe_1
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_dougu_recipe
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_recipe_2
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_recipe_3
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_recipe_4
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe_4
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_recipe_5
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_recipe_5
   work_pool:
     name: kubernetes
     job_variables:
@@ -447,6 +858,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_gesture_book
   work_pool:
     name: kubernetes
@@ -461,6 +874,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_seal
   work_pool:
     name: kubernetes
@@ -471,11 +886,61 @@ deployments:
   description:
   parameters: {}
 
-- name: dqx_get_price_dougu_material
+- name: dqx_get_price_dougu_material_1
   tags:
   - dqx
   schedule:
-  entrypoint: get_price/get_price.py:get_price_dougu_material
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_1
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_2
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_2
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_3
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_3
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_4
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_4
   work_pool:
     name: kubernetes
     job_variables:
@@ -489,6 +954,8 @@ deployments:
   tags:
   - dqx
   schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
   entrypoint: get_price/get_price.py:get_price_dougu_lure
   work_pool:
     name: kubernetes
