@@ -950,6 +950,102 @@ deployments:
   description:
   parameters: {}
 
+- name: dqx_get_price_dougu_material_5
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_5
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_6
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_6
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_7
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_7
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_8
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_8
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_9
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_9
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
+- name: dqx_get_price_dougu_material_10
+  tags:
+  - dqx
+  schedule:
+    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+    timezone: Asia/Tokyo
+  entrypoint: get_price/get_price.py:get_price_dougu_material_10
+  work_pool:
+    name: kubernetes
+    job_variables:
+      image: '{{ build-image.image }}'
+    work_queue_name:
+  version:
+  description:
+  parameters: {}
+
 - name: dqx_get_price_dougu_lure
   tags:
   - dqx
