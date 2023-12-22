@@ -41,16 +41,17 @@ def search_item(base_url,url_hashes):
 def save_to_postgresql(df, table_name):
     # 収集したデータを保存
     print('-- save to postgresql ---')
+    schema_name = "item_name"
     secret_block_postgresql_passwd = Secret.load("postgresql-tig-passwd")
     postgresql_passwd = secret_block_postgresql_passwd.get()
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "192.168.0.151",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
-    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    df.to_sql(table_name, con=engine, schema=schema_name, if_exists='replace', index=False)
 
 @flow(log_prints=True)
 def get_itemname():

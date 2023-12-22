@@ -18,9 +18,6 @@ from prefect_github.repository import GitHubRepository
 from prefect.blocks.system import Secret
 import datetime
 
-@task(retries=3)
-def load_git_repo():
-    github_repository_block = GitHubRepository.load("github-dqx-get-itemname")
 
 
 @task(retries=3)
@@ -41,7 +38,7 @@ def login_dqx(url):
     prefs = {"profile.default_content_setting_values.notifications" : 2}
     options.add_experimental_option("prefs",prefs)
     # webdriverのパスを指定
-    service = Service(executable_path="chromedriver-mac-arm64/chromedriver")
+    service = Service(executable_path="chromedriver-linux64/chromedriver")
     driver = webdriver.Chrome(service=service,options=options)
     # 検索先のURL
     driver.get(url)
@@ -65,16 +62,17 @@ def login_dqx(url):
     return driver
 
 def query_item_name(table_name):
+    schema_name = "item_name"
     secret_block_postgresql_passwd = Secret.load("postgresql-tig-passwd")
     postgresql_passwd = secret_block_postgresql_passwd.get()
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "192.168.0.151",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
-    df = pd.read_sql_table(table_name, engine)
+    df = pd.read_sql_table(table_name, con=engine, schema=schema_name)
     return df
 
 
@@ -114,21 +112,21 @@ def search_item(driver, search_word):
 def save_to_postgresql(df, table_name):
     # 収集したデータを保存
     print('-- save to postgresql ---')
+    schema_name = "item_name"
     secret_block_postgresql_passwd = Secret.load("postgresql-tig-passwd")
     postgresql_passwd = secret_block_postgresql_passwd.get()
     connection_config = {
             "user": "tig",
             "password": postgresql_passwd,
-            "host": "postgresql.mynet.local",
+            "host": "192.168.0.151",
             "port": "5432",
             "dbname": "dqx"}
     engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
-    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    df.to_sql(table_name, con=engine, schema=schema_name, if_exists='replace', index=False)
 
 
 @flow(log_prints=True)
 def get_item_hash():
-    load_git_repo()
     table_list = ["name_weapon", "name_armor", "name_dougu"]
     for table_name in table_list:
         url = "https://hiroba.dqx.jp/sc/search/"

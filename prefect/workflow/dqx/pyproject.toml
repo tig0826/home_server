@@ -24,6 +24,7 @@ prefect-docker = "^0.4.0"
 numpy = "^1.26.1"
 prefect-dask = "^0.2.6"
 psycopg2-binary = ">=2.8.6"
+selenium-wire = "^5.1.0"
 
 [tool.poetry.dev-dependencies]
 ipykernel = "^6.15.2"

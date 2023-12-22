@@ -35,5 +35,7 @@ RUN mkdir -p /opt/prefect/chromedriver_linux64
 COPY chromedriver-linux64/chromedriver /opt/prefect/chromedriver-linux64/chromedriver
 
 # flowをコピー
+COPY get_itemname/get_itemname.py /opt/prefect/get_itemname/get_itemname.py
+COPY get_item_hash_hiroba/get_item_hash.py /opt/prefect/get_item_hash_hiroba/get_item_hash.py
 COPY get_trade_history/get_trade_history.py /opt/prefect/get_trade_history/get_trade_history.py
 COPY get_price/get_price.py /opt/prefect/get_price/get_price.py
