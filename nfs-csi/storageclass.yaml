@@ -4,7 +4,7 @@ metadata:
   name: nfs-csi
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: nas01.mynet
+  server: 192.168.0.140
   share: /tank/k8s-home
   mountPermissions: "777"
 reclaimPolicy: Delete
