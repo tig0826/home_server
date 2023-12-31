@@ -72,18 +72,18 @@ def get_exhibit_price(driver, item_name, item_type, item_category, item_hash, to
     url = "https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
     first_row_prev = ""
     driver.get(url.format(item_hash=item_hash, pagenum=pagenum))
-    sleep(5)
+    sleep(7)
     error_elements = driver.find_elements(By.XPATH, '//*[@id="bazaarList"]/form/div/div/p[@class="txt_error"]')
     if len(error_elements) > 0:
         print(f"No items found for {item_name}")
         return pd.DataFrame()
-    sleep(5)
+    sleep(7)
     table = driver.find_element(By.XPATH, '//*[@class="bazaarTable bazaarlist"]')
     rows = table.find_elements(By.TAG_NAME, 'tr')
     first_row = rows[1].text
     while first_row != first_row_prev:
         # 最後のページまで繰り返す(前のページと同じ内容なら最後のページ)
-        sleep(5)
+        sleep(7)
         for row in rows[1:]:
             cols = row.find_elements(By.TAG_NAME, 'td')
             # 一列目の要素を整形 アイテム名とできのよさ
@@ -1169,7 +1169,7 @@ async def get_price_dougu_material_1():
     schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
     size = len(df_dougu)
-    rate = size // 10
+    rate = size // 5
     df_dougu = df_dougu[:rate*1]
     group_dougu  = df_dougu.groupby('カテゴリ')
     df_dougu_list = [group_data for _, group_data in group_dougu]
@@ -1188,7 +1188,7 @@ async def get_price_dougu_material_2():
     schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
     size = len(df_dougu)
-    rate = size // 10
+    rate = size // 5
     df_dougu = df_dougu[rate*1:rate*2]
     group_dougu  = df_dougu.groupby('カテゴリ')
     df_dougu_list = [group_data for _, group_data in group_dougu]
@@ -1207,7 +1207,7 @@ async def get_price_dougu_material_3():
     schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
     size = len(df_dougu)
-    rate = size // 10
+    rate = size // 5
     df_dougu = df_dougu[rate*2:rate*3]
     group_dougu  = df_dougu.groupby('カテゴリ')
     df_dougu_list = [group_data for _, group_data in group_dougu]
@@ -1226,7 +1226,7 @@ async def get_price_dougu_material_4():
     schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
     size = len(df_dougu)
-    rate = size // 10
+    rate = size // 4
     df_dougu = df_dougu[rate*3:rate*4]
     group_dougu  = df_dougu.groupby('カテゴリ')
     df_dougu_list = [group_data for _, group_data in group_dougu]
@@ -1245,103 +1245,8 @@ async def get_price_dougu_material_5():
     schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
     df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
     size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*4:rate*5]
-    group_dougu  = df_dougu.groupby('カテゴリ')
-    df_dougu_list = [group_data for _, group_data in group_dougu]
-    for df in df_dougu_list:
-        wrap_task_get_price(df, url, item_type, today, hour)
-
-@flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu_material_6():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name = "price"
-    item_type = "道具"
-    item_category = "素材"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
-    size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*5:rate*6]
-    group_dougu  = df_dougu.groupby('カテゴリ')
-    df_dougu_list = [group_data for _, group_data in group_dougu]
-    for df in df_dougu_list:
-        wrap_task_get_price(df, url, item_type, today, hour)
-
-@flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu_material_7():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name = "price"
-    item_type = "道具"
-    item_category = "素材"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
-    size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*6:rate*7]
-    group_dougu  = df_dougu.groupby('カテゴリ')
-    df_dougu_list = [group_data for _, group_data in group_dougu]
-    for df in df_dougu_list:
-        wrap_task_get_price(df, url, item_type, today, hour)
-
-@flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu_material_8():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name = "price"
-    item_type = "道具"
-    item_category = "素材"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
-    size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*7:rate*8]
-    group_dougu  = df_dougu.groupby('カテゴリ')
-    df_dougu_list = [group_data for _, group_data in group_dougu]
-    for df in df_dougu_list:
-        wrap_task_get_price(df, url, item_type, today, hour)
-
-@flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu_material_9():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name = "price"
-    item_type = "道具"
-    item_category = "素材"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
-    size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*8:rate*9]
-    group_dougu  = df_dougu.groupby('カテゴリ')
-    df_dougu_list = [group_data for _, group_data in group_dougu]
-    for df in df_dougu_list:
-        wrap_task_get_price(df, url, item_type, today, hour)
-
-@flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price_dougu_material_10():
-    JST = timezone(timedelta(hours=+9), 'JST')
-    today = datetime.now(JST).strftime('%Y/%m/%d')
-    hour = datetime.now(JST).strftime('%H')
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
-    schema_name = "price"
-    item_type = "道具"
-    item_category = "素材"
-    schema_name_item_name = "item_name" # 全アイテム名の入っているスキーマ名
-    df_dougu  = load_from_postgresql(f"select * from {schema_name_item_name}.name_dougu where カテゴリ = '{item_category}'")
-    size = len(df_dougu)
-    rate = size // 10
-    df_dougu = df_dougu[rate*9:]
+    rate = size // 5
+    df_dougu = df_dougu[rate*4:]
     group_dougu  = df_dougu.groupby('カテゴリ')
     df_dougu_list = [group_data for _, group_data in group_dougu]
     for df in df_dougu_list:
