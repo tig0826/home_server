@@ -4,7 +4,7 @@ from prefect.blocks.system import Secret
 from sqlalchemy import create_engine
 
 @task(name="load from postgresql", retries=5, retry_delay_seconds=5)
-def load_from_postgresql(sql):
+def load_psql(sql):
     # 収集したデータを保存
     print('-- load from postgresql ---')
     secret_block_postgresql_passwd = Secret.load("postgresql-tig-passwd")

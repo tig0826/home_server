@@ -1,10 +1,6 @@
 import requests
-from prefect import task
 from prefect.blocks.system import Secret
-from sqlalchemy import create_engine
 
-
-@task(name="login dqx", retries=5, retry_delay_seconds=5)
 def login_dqx():
 # セッションを開始
     session = requests.Session()
