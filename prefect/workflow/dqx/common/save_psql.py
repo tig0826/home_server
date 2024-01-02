@@ -12,6 +12,9 @@ def save_psql(df, table_name, schema_name, if_exists='append'):
             "password": postgresql_passwd,
             "host": "192.168.0.151",
             "port": "5432",
-            "dbname": "dqx"}
-    engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
+            "dbname": "dqx",}
+    engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config),
+                           pool_size=5,
+                           max_overflow=10,
+                           pool_timeout=300)
     df.to_sql(table_name, con=engine, schema=schema_name, if_exists=if_exists, index=False)
