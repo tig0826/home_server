@@ -36,63 +36,60 @@ definitions:
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
- - name: dqx_get_itemname
-   tags:
-   - dqx
-   schedule:
-   entrypoint: get_itemname/get_itemname.py:get_itemname
-   work_pool:
-     name: kubernetes
-     job_variables:
-       image: '{{ build-image.image }}'
-     work_queue_name:
-   version:
-   description:
-   parameters: {}
-
- - name: dqx_get_item_hash
-   tags:
-   - dqx
-   schedule:
-   entrypoint: get_item_hash_hiroba/get_item_hash.py:get_item_hash
-   work_pool:
-     name: kubernetes
-     job_variables:
-       image: '{{ build-image.image }}'
-     work_queue_name:
-   version:
-   description:
-   parameters: {}
-
- - name: dqx_get_trade_history
-   tags:
-   - dqx
-   schedule:
-     cron: 1 0 * * *
-     timezone: Asia/Tokyo
-     day_or: true
-   entrypoint: get_trade_history/get_trade_history.py:get_trade_history
-   work_pool:
-     name: kubernetes
-     job_variables:
-       image: '{{ build-image.image }}'
-     work_queue_name:
-   version:
-   description:
-   parameters: {}
-
-- name: dqx_get_price
-  tags:
-  - dqx
-  schedule:
-    rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
-    timezone: Asia/Tokyo
-  entrypoint: get_price/get_price.py:get_price
-  work_pool:
-    name: kubernetes
-    job_variables:
-      image: '{{ build-image.image }}'
-    work_queue_name:
-  version:
-  description:
-  parameters: {}
+  - name: dqx_get_itemname
+    tags:
+    - dqx
+    schedule:
+    entrypoint: get_itemname/get_itemname.py:get_itemname
+    work_pool:
+      name: kubernetes
+      job_variables:
+        image: '{{ build-image.image }}'
+      work_queue_name:
+    version:
+    description:
+    parameters: {}
+  - name: dqx_get_item_hash
+    tags:
+    - dqx
+    schedule:
+    entrypoint: get_item_hash_hiroba/get_item_hash.py:get_item_hash
+    work_pool:
+      name: kubernetes
+      job_variables:
+        image: '{{ build-image.image }}'
+      work_queue_name:
+    version:
+    description:
+    parameters: {}
+  - name: dqx_get_trade_history
+    tags:
+    - dqx
+    schedule:
+      cron: 1 0 * * *
+      timezone: Asia/Tokyo
+      day_or: true
+    entrypoint: get_trade_history/get_trade_history.py:get_trade_history
+    work_pool:
+      name: kubernetes
+      job_variables:
+        image: '{{ build-image.image }}'
+      work_queue_name:
+    version:
+    description:
+    parameters: {}
+  - name: dqx_get_price
+    tags:
+    - dqx
+    schedule:
+      rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+      timezone: Asia/Tokyo
+    entrypoint: get_price/get_price.py:get_price
+    work_pool:
+      name: kubernetes
+      job_variables:
+        image: '{{ build-image.image }}'
+      work_queue_name:
+    version:
+    description:
+    parameters: {}
