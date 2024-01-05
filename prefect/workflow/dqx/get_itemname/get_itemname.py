@@ -1,57 +1,72 @@
 #a   -*- coding: utf-8 -*-
 
 import pandas as pd
-from sqlalchemy.util import warn_exception
 from prefect import flow, task
-import psycopg2
-from sqlalchemy import create_engine
-import time
 from time import sleep
-from prefect_github.repository import GitHubRepository
-from prefect.blocks.system import Secret
-import datetime
 import requests
 from bs4 import BeautifulSoup
 
+from common.save_psql import save_psql
+
 
 @task(retries=3)
-def search_item(base_url,url_hashes):
+def search_item(base_url, url_hashes, item_type):
+    # 取得したアイテムの情報を格納するリスト
     item_list = []
-    for item_type, u in url_hashes.items():
+    # URLごとにアクセス
+    for item_category, u in url_hashes.items():
         item_name = ""
         pagenum=1
-        while item_name != "No Results Found!":
-            url = base_url.format(u=u,pagenum=pagenum)
-            print(url)
-            response = requests.get(url)
-            response.encoding = response.apparent_encoding
-            bs = BeautifulSoup(response.text, "html.parser")
-            for row in bs.find_all('tr'):
-                cells = row.find_all('td')
-                item_name = cells[0].getText().strip()
-                print(item_name)
-                if item_name != "No Results Found!":
-                    item_list.append([item_name,item_type])
-            sleep(0.3)
-            pagenum += 1
-    df = pd.DataFrame(item_list, columns=["アイテム名", "カテゴリ"])
+        sub_categories = {"素材": ["石系", "植物系", "モンスター系", "染色アイテム", "その他"],
+                          "消費アイテム": ["どうぐ", "コイン", "箱", "プリズム", "カプセル", "花火", "霊符"],
+                          "レシピ": ["武器鍛冶", "防具鍛冶", "道具鍛冶", "木工", "さいほう", "調理", "ランプ錬金", "ツボ錬金"]}
+        # サブカテゴリが存在する道具の場合
+        if item_category in sub_categories:
+            list_subcategory = sub_categories[item_category]
+        else:
+            list_subcategory = [None]
+        for sub_category in list_subcategory:
+            # 最後のページまでページを送ってデータを集める
+            while True:
+                # 武器か防具の場合
+                if item_type in ['武器', '防具']:
+                    url = base_url.format(u=u,pagenum=pagenum)
+                    print(url)
+                    response = requests.get(url)
+                    response.encoding = response.apparent_encoding
+                    bs = BeautifulSoup(response.text, "html.parser")
+                    for row in bs.find_all('tr'):
+                        cells = row.find_all('td')
+                        item_name = cells[0].getText().strip()
+                        print(item_name)
+                        if item_name != "No Results Found!":
+                            item_level = int(cells[2].getText().strip())
+                            item_list.append([item_name, item_type, item_category, sub_category, item_level])
+                # 道具の場合
+                else:
+                    url = base_url.format(u=u,pagenum=pagenum)
+                    if sub_category is not None:
+                        url += f'&subcategory={sub_category}'
+                    print(url)
+                    response = requests.get(url)
+                    response.encoding = response.apparent_encoding
+                    bs = BeautifulSoup(response.text, "html.parser")
+                    for row in bs.find_all('tr'):
+                        cells = row.find_all('td')
+                        item_name = cells[0].getText().strip()
+                        print(item_name)
+                        if item_name != "No Results Found!":
+                            item_level = None
+                            item_list.append([item_name, item_type, item_category, sub_category, item_level])
+                if item_name == "No Results Found!":
+                    pagenum = 1
+                    print('finish')
+                    break
+                sleep(0.3)
+                pagenum += 1
+    df = pd.DataFrame(item_list, columns=["アイテム名", "種類", "カテゴリ", "サブカテゴリ", "装備Lv"])
     return df
 
-@task(retries=3)
-def save_to_postgresql(df, table_name):
-    # 収集したデータを保存
-    print('-- save to postgresql ---')
-    schema_name = "item_name"
-    secret_block_postgresql_passwd = Secret.load("postgresql-tig-passwd")
-    postgresql_passwd = secret_block_postgresql_passwd.get()
-    connection_config = {
-            "user": "tig",
-            "password": postgresql_passwd,
-            "host": "192.168.0.151",
-            "port": "5432",
-            "dbname": "dqx"}
-    engine = create_engine('postgresql://{user}:{password}@{host}:{port}/{dbname}'.format(**connection_config))
-    df.to_sql(table_name, con=engine, schema=schema_name, if_exists='replace', index=False)
 
 @flow(log_prints=True)
 def get_itemname():
@@ -100,12 +115,21 @@ def get_itemname():
             "ルアー" : "6c9eac07f2d64fec2d7eeee689000952beccf668"
             }
 
-    df_weapon = search_item(weapon_base_url, weapon_url_hashes)
-    df_armor = search_item(armor_base_url, armor_urls_hashes)
-    df_dougu = search_item(dougu_base_url, dougu_urls_hashes)
-    save_to_postgresql(df_weapon, "name_weapon")
-    save_to_postgresql(df_armor, "name_armor")
-    save_to_postgresql(df_dougu, "name_dougu")
+    df_weapon = search_item(weapon_base_url, weapon_url_hashes, item_type='武器')
+    df_armor = search_item(armor_base_url, armor_urls_hashes, item_type='防具')
+    df_dougu = search_item(dougu_base_url, dougu_urls_hashes, item_type='道具')
+    save_psql(df=df_weapon,
+              table_name='name_weapon',
+              schema_name='item_name',
+              if_exists='replace')
+    save_psql(df=df_armor,
+              table_name='name_armor',
+              schema_name='item_name',
+              if_exists='replace')
+    save_psql(df=df_dougu,
+              table_name='name_dougu',
+              schema_name='item_name',
+              if_exists='replace')
 
 if __name__ == "__main__":
     # get_itemname.serve(name="get_itemname",cron="0 1 15 * *")

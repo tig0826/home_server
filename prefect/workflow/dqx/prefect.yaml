@@ -82,7 +82,7 @@ deployments:
     tags:
     - dqx
     schedule:
-      rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=0'
+      rrule: 'FREQ=DAILY;BYHOUR=7,13,20;BYMINUTE=2'
       timezone: Asia/Tokyo
     entrypoint: get_price/get_price.py:get_price
     work_pool:

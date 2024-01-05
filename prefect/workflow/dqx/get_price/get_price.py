@@ -23,7 +23,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
     while True:
         url = f"https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
         # ページの内容を取得
-        sleep(8)
+        sleep(11)
         target_response = session.get(url)
         if target_response.ok:
             page_content = target_response.text
@@ -115,7 +115,10 @@ def get_price_split(df, today, hour):
     for _, row in df.iterrows():
         # アイテム名のデータフレームの各行ごとに相場情報データベースを検索していく
         # 各行の要素を分解(アイテム名、カテゴリ、データベースのURLのハッシュ)
-        item_name, item_type, item_category, item_hash = row
+        item_name = row['アイテム名']
+        item_type = row['種類']
+        item_category = row['カテゴリ']
+        item_hash = row['ハッシュ']
         try:
             # 相場情報データベースから検索
             df_price = get_exhibit_price(session,
