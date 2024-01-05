@@ -4,13 +4,13 @@ import pandas as pd
 from time import sleep
 import datetime
 from datetime import datetime, timedelta, timezone
-
 from prefect import flow, task
 from prefect_dask.task_runners import DaskTaskRunner
 
 from common.save_psql import save_psql
 from common.load_psql import load_psql
 from common.login_dqx import login_dqx
+
 
 def get_exhibit_price(session, item_name, item_type, item_category, item_hash, today, hour):
     print(f"-- search item name {item_name} ---")
@@ -23,7 +23,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
     while True:
         url = f"https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
         # ページの内容を取得
-        sleep(5)
+        sleep(11)
         target_response = session.get(url)
         if target_response.ok:
             page_content = target_response.text
@@ -53,8 +53,8 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
             count = int(cells[1].find_all('p')[0].text.split('：')[1].rstrip('こ'))
             # 価格と1つあたりの価格
             price_info = cells[1].find_all('p')[1].text.split('\n')
-            price = price_info[0].split('：')[1].replace('G','').strip()
-            unit_price = price_info[1].replace('(ひとつあたり','').replace('G)','').strip()
+            price = price_info[0].split('：')[1].replace('G', '').strip()
+            unit_price = price_info[1].replace('(ひとつあたり', '').replace('G)', '').strip()
             unit_price = int(unit_price) if unit_price != '' else None
             # 出品者
             seller = cells[1].find('a', class_='strongLnk').text.strip()
@@ -75,8 +75,19 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
                          exhibit_end,
                          seller])
         # ページ番号を増やす
-        pagenum +=1
-    df = pd.DataFrame(data, columns=["アイテム名", "取得日", "取得時刻", "種類", "カテゴリ", "できのよさ", "個数", "価格", "1つあたりの価格", "出品日", "出品期限", "取引相手"])
+        pagenum += 1
+    df = pd.DataFrame(data, columns=["アイテム名",
+                                     "取得日",
+                                     "取得時刻",
+                                     "種類",
+                                     "カテゴリ",
+                                     "できのよさ",
+                                     "個数",
+                                     "価格",
+                                     "1つあたりの価格",
+                                     "出品日",
+                                     "出品期限",
+                                     "取引相手"])
     return df
 
 @task(name="get exhibit price", retries=5, retry_delay_seconds=5)
@@ -85,18 +96,39 @@ def get_price_split(df, today, hour):
     # get_exhibit_priceを直接taskにしないのは並列処理のチューニングのため
     # todayとhourを引数として渡しているのは、今回の処理が数時間かかっても、開始時刻を統一するため。
     # 価格情報を格納するデータフレーム
-    schema_name = "price" # 保存先のスキーマ名
-    df_price_all = pd.DataFrame(columns=["アイテム名", "取得日", "取得時刻", "種類", "カテゴリ", "できのよさ", "個数", "価格", "1つあたりの価格", "出品日", "出品期限", "取引相手"])
+    schema_name = "price"  # 保存先のスキーマ名
+    df_price_all = pd.DataFrame(columns=["アイテム名",
+                                         "取得日",
+                                         "取得時刻",
+                                         "種類",
+                                         "カテゴリ",
+                                         "できのよさ",
+                                         "個数",
+                                         "価格",
+                                         "1つあたりの価格",
+                                         "出品日",
+                                         "出品期限",
+                                         "取引相手"])
     # dqxのページにログイン
     session = login_dqx()
     for _, row in df.iterrows():
         # アイテム名のデータフレームの各行ごとに相場情報データベースを検索していく
         # 各行の要素を分解(アイテム名、カテゴリ、データベースのURLのハッシュ)
-        item_name, item_type, item_category, item_hash = row
+        item_name = row['アイテム名']
+        item_type = row['種類']
+        item_category = row['カテゴリ']
+        item_hash = row['ハッシュ']
         try:
             # 相場情報データベースから検索
-            df_price = get_exhibit_price(session, item_name, item_type, item_category, item_hash, today, hour)
-            df_price_all = pd.concat([df_price_all, df_price], ignore_index = True)
+            df_price = get_exhibit_price(session,
+                                         item_name,
+                                         item_type,
+                                         item_category,
+                                         item_hash,
+                                         today,
+                                         hour)
+            df_price_all = pd.concat([df_price_all, df_price],
+                                     ignore_index=True)
         except Exception as e:
             print(f"エラーが発生しました: {e}")
     # 出品情報をアイテム名ごとに分けて保存(アイテム名ごとに保存先のテーブルが違う)
@@ -114,16 +146,23 @@ async def get_price():
     JST = timezone(timedelta(hours=+9), 'JST')
     today = datetime.now(JST).strftime('%Y/%m/%d')
     hour = datetime.now(JST).strftime('%H')
-    df_dougu  = load_psql("select * from metadata.item_name where 種類 = '道具'")
-    split_num = 10
+    # postgresqlからアイテムのメタデータを取得
+    df_dougu = load_psql("select * from metadata.item_name where 種類 = '道具'")
+    # 取得したアイテム名のデータフレームを分割
+    split_num = 10  # 分割数
+    split_labels = [i for i in range(split_num)]
     size = len(df_dougu)
-    part_size = size // split_num # dfの分割されたサイズ
+    # 分割用のラベルを付与。アイテムの種類が偏らないように先頭から巡回しながらラベルを割り当てる
+    df_dougu['Group'] = [split_labels[i % len(split_labels)] for i in range(size)]
+    # ラベルに基づいて分割
+    df_grouped = df_dougu.groupby('Group')
+    dfs = [df_grouped.get_group(i) for i in range(split_num)]
     # dfを分割してそれぞれスクレイピングする
-    for i in range(split_num):
-        df = df_dougu[part_size*i:part_size*(i+1)]
+    for df in dfs:
         # 出品情報を取得
+        df = df.drop('Group', axis=1)  # Group列はもう使わないのでdrop
         get_price_split.submit(df, today, hour)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(get_price())
 
