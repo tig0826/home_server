@@ -23,7 +23,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
     while True:
         url = f"https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
         # ページの内容を取得
-        sleep(11)
+        sleep(10)
         target_response = session.get(url)
         if target_response.ok:
             page_content = target_response.text
@@ -54,6 +54,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
             # 価格と1つあたりの価格
             price_info = cells[1].find_all('p')[1].text.split('\n')
             price = price_info[0].split('：')[1].replace('G', '').strip()
+            price = int(price)
             unit_price = price_info[1].replace('(ひとつあたり', '').replace('G)', '').strip()
             unit_price = int(unit_price) if unit_price != '' else None
             # 出品者
@@ -90,10 +91,9 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
                                      "取引相手"])
     return df
 
-@task(name="get exhibit price", retries=5, retry_delay_seconds=5)
+@task(name="get exhibit price", tags=["dqx","dqx_price"], retries=5, retry_delay_seconds=5)
 def get_price_split(df, today, hour):
-    # dfを一定数に分割し並列に価格を取得する
-    # get_exhibit_priceを直接taskにしないのは並列処理のチューニングのため
+    # 価格情報を取得する
     # todayとhourを引数として渡しているのは、今回の処理が数時間かかっても、開始時刻を統一するため。
     # 価格情報を格納するデータフレーム
     schema_name = "price"  # 保存先のスキーマ名
@@ -140,27 +140,39 @@ def get_price_split(df, today, hour):
                   table_name=item_name,
                   schema_name=schema_name,
                   if_exists='append')
+    session.close()
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
-async def get_price():
+async def get_price_dougu():
     JST = timezone(timedelta(hours=+9), 'JST')
     today = datetime.now(JST).strftime('%Y/%m/%d')
     hour = datetime.now(JST).strftime('%H')
     # postgresqlからアイテムのメタデータを取得
     df_dougu = load_psql("select * from metadata.item_name where 種類 = '道具'")
-    # 取得したアイテム名のデータフレームを分割
-    split_num = 10  # 分割数
-    split_labels = [i for i in range(split_num)]
-    size = len(df_dougu)
-    # 分割用のラベルを付与。アイテムの種類が偏らないように先頭から巡回しながらラベルを割り当てる
-    df_dougu['Group'] = [split_labels[i % len(split_labels)] for i in range(size)]
-    # ラベルに基づいて分割
-    df_grouped = df_dougu.groupby('Group')
-    dfs = [df_grouped.get_group(i) for i in range(split_num)]
-    # dfを分割してそれぞれスクレイピングする
-    for df in dfs:
+    for _,df in df_dougu.iterrows():
         # 出品情報を取得
-        df = df.drop('Group', axis=1)  # Group列はもう使わないのでdrop
+        get_price_split.submit(df, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_weapon():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    # postgresqlからアイテムのメタデータを取得
+    df_weapon = load_psql("select * from metadata.item_name where 種類 = '武器'")
+    for _,df in df_weapon.iterrows():
+        # 出品情報を取得
+        get_price_split.submit(df, today, hour)
+
+@flow(log_prints=True, task_runner=DaskTaskRunner())
+async def get_price_armor():
+    JST = timezone(timedelta(hours=+9), 'JST')
+    today = datetime.now(JST).strftime('%Y/%m/%d')
+    hour = datetime.now(JST).strftime('%H')
+    # postgresqlからアイテムのメタデータを取得
+    df_dougu = load_psql("select * from metadata.item_name where 種類 = '武器'")
+    for _,df in df_dougu.iterrows():
+        # 出品情報を取得
         get_price_split.submit(df, today, hour)
 
 if __name__ == "__main__":
