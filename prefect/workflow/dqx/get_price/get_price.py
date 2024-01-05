@@ -90,7 +90,6 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
                                      "取引相手"])
     return df
 
-
 @task(name="get exhibit price", retries=5, retry_delay_seconds=5)
 def get_price_split(df, today, hour):
     # dfを一定数に分割し並列に価格を取得する
@@ -141,7 +140,6 @@ def get_price_split(df, today, hour):
                   table_name=item_name,
                   schema_name=schema_name,
                   if_exists='append')
-
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price():
