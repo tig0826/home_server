@@ -10,15 +10,11 @@ ENV POETRY_HOME="/opt/poetry" \
     \
     PYSETUP_PATH="/opt/pysetup"
 
-# SeleniumのChromeドライバを設定
-ENV CHROME_DRIVER_PATH="/opt/prefect/chromedriver-linux64/chromedriver"
-
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
 RUN pip install poetry
 # 必要なライブラリをインストール
 RUN apt-get update && apt-get install -y \
-    chromium-driver \
     libpq-dev \
     gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -29,9 +25,6 @@ RUN mkdir -p /opt/prefect/common
 COPY pyproject.toml /opt/prefect/pyproject.toml
 WORKDIR /opt/prefect
 RUN poetry install --only main
-
-RUN mkdir -p /opt/prefect/chromedriver_linux64
-COPY chromedriver-linux64/chromedriver /opt/prefect/chromedriver-linux64/chromedriver
 
 # flowをコピー
 COPY get_itemname/get_itemname.py /opt/prefect/get_itemname/get_itemname.py
