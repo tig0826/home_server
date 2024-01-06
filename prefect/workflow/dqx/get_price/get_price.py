@@ -23,7 +23,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
     while True:
         url = f"https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
         # ページの内容を取得
-        sleep(10)
+        sleep(3)
         target_response = session.get(url)
         if target_response.ok:
             page_content = target_response.text
@@ -93,53 +93,31 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
 
 @task(name="get exhibit price", tags=["dqx","dqx_price"], retries=5, retry_delay_seconds=5)
 def get_price_split(df, today, hour):
-    # 価格情報を取得する
+    # 価格情報を取得から保存までを行うタスク
     # todayとhourを引数として渡しているのは、今回の処理が数時間かかっても、開始時刻を統一するため。
-    # 価格情報を格納するデータフレーム
     schema_name = "price"  # 保存先のスキーマ名
-    df_price_all = pd.DataFrame(columns=["アイテム名",
-                                         "取得日",
-                                         "取得時刻",
-                                         "種類",
-                                         "カテゴリ",
-                                         "できのよさ",
-                                         "個数",
-                                         "価格",
-                                         "1つあたりの価格",
-                                         "出品日",
-                                         "出品期限",
-                                         "取引相手"])
     # dqxのページにログイン
     session = login_dqx()
-    for _, row in df.iterrows():
-        # アイテム名のデータフレームの各行ごとに相場情報データベースを検索していく
-        # 各行の要素を分解(アイテム名、カテゴリ、データベースのURLのハッシュ)
-        item_name = row['アイテム名']
-        item_type = row['種類']
-        item_category = row['カテゴリ']
-        item_hash = row['ハッシュ']
-        try:
-            # 相場情報データベースから検索
-            df_price = get_exhibit_price(session,
-                                         item_name,
-                                         item_type,
-                                         item_category,
-                                         item_hash,
-                                         today,
-                                         hour)
-            df_price_all = pd.concat([df_price_all, df_price],
-                                     ignore_index=True)
-        except Exception as e:
-            print(f"エラーが発生しました: {e}")
-    # 出品情報をアイテム名ごとに分けて保存(アイテム名ごとに保存先のテーブルが違う)
-    group_price = df_price_all.groupby('アイテム名')
-    df_price_all_dict = {item_name: group_data for item_name, group_data in group_price}
-    for item_name, df_price in df_price_all_dict.items():
-        item_name = item_name.split("+")[0]
-        save_psql(df=df_price,
-                  table_name=item_name,
-                  schema_name=schema_name,
-                  if_exists='append')
+    # 各行の要素を分解(アイテム名、カテゴリ、データベースのURLのハッシュ)
+    item_name = df['アイテム名']
+    item_type = df['種類']
+    item_category = df['カテゴリ']
+    item_hash = df['ハッシュ']
+    try:
+        # 相場情報データベースから検索
+        df_price = get_exhibit_price(session,
+                                     item_name,
+                                     item_type,
+                                     item_category,
+                                     item_hash,
+                                     today,
+                                     hour)
+    except Exception as e:
+        print(f"スクレイピング時にエラーが発生しました: {e}")
+    save_psql(df=df_price,
+              table_name=item_name,
+              schema_name=schema_name,
+              if_exists='append')
     session.close()
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
