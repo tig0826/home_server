@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 import requests
 from prefect.blocks.system import Secret
 
@@ -39,6 +40,9 @@ def login_dqx():
         # ログイン後の処理をここで行います。
     else:
         print("Login failed with status code: ", response.status_code)
+# レスポンスからcis_session idを取得
+    soup = BeautifulSoup(response.content, 'html.parser')
+    cis_sessid = soup.find('input',{'name':'cis_sessid'})['value']
 
 # JavaScriptで実行されるリダイレクト部分を実行
 # 2つ目のリクエストのURL
@@ -46,7 +50,7 @@ def login_dqx():
 
 # フォームから取得したデータ
     form_data = {
-        'cis_sessid': '9f4bb580cf0ed1f605835fa3e47edf8ec0d7978d0ab6d195266bf40f',
+        'cis_sessid': cis_sessid,
         'provision': '',
         '_c': '1'
     }
