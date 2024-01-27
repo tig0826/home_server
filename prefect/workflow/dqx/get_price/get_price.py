@@ -103,7 +103,6 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
                                      "取引相手"])
     return df
 
-
 @task(name="get exhibit price",
       tags=["dqx", "dqx_price"],
       retries=5,
@@ -132,7 +131,6 @@ def get_price_split(session, df, today, hour):
               table_name=item_name,
               schema_name=schema_name,
               if_exists='append')
-
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_dougu():
