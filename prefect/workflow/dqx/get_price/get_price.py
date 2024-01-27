@@ -23,7 +23,7 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
     while True:
         url = f"https://hiroba.dqx.jp/sc/search/bazaar/{item_hash}/page/{pagenum}"
         # ページの内容を取得
-        sleep(3)
+        sleep(3.1)
         target_response = session.get(url)
         if target_response.ok:
             page_content = target_response.text
@@ -34,7 +34,19 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
         error_elements = soup.find_all(class_='txt_error')
         if len(error_elements) > 0:
             print(f"No items found for {item_name}")
-            return pd.DataFrame()
+            df = pd.DataFrame([], columns=["アイテム名",
+                                           "取得日",
+                                           "取得時刻",
+                                           "種類",
+                                           "カテゴリ",
+                                           "できのよさ",
+                                           "個数",
+                                           "価格",
+                                           "1つあたりの価格",
+                                           "出品日",
+                                           "出品期限",
+                                           "取引相手"])
+            return df
         # 出品情報のテーブルだけを抽出
         soup_tr = soup.find_all(class_='bazaarTable bazaarlist')[0]
         # 前のページと同じ内容なら終了
@@ -91,13 +103,14 @@ def get_exhibit_price(session, item_name, item_type, item_category, item_hash, t
                                      "取引相手"])
     return df
 
-@task(name="get exhibit price", tags=["dqx","dqx_price"], retries=5, retry_delay_seconds=5)
-def get_price_split(df, today, hour):
+@task(name="get exhibit price",
+      tags=["dqx", "dqx_price"],
+      retries=5,
+      retry_delay_seconds=5)
+def get_price_split(session, df, today, hour):
     # 価格情報を取得から保存までを行うタスク
     # todayとhourを引数として渡しているのは、今回の処理が数時間かかっても、開始時刻を統一するため。
     schema_name = "price"  # 保存先のスキーマ名
-    # dqxのページにログイン
-    session = login_dqx()
     # 各行の要素を分解(アイテム名、カテゴリ、データベースのURLのハッシュ)
     item_name = df['アイテム名']
     item_type = df['種類']
@@ -118,7 +131,6 @@ def get_price_split(df, today, hour):
               table_name=item_name,
               schema_name=schema_name,
               if_exists='append')
-    session.close()
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_dougu():
@@ -127,9 +139,14 @@ async def get_price_dougu():
     hour = datetime.now(JST).strftime('%H')
     # postgresqlからアイテムのメタデータを取得
     df_dougu = load_psql("select * from metadata.item_name where 種類 = '道具'")
-    for _,df in df_dougu.iterrows():
+    # dqxのページにログイン
+    session = login_dqx()
+    for _, df in df_dougu.iterrows():
         # 出品情報を取得
-        get_price_split.submit(df, today, hour)
+        item_name = df['アイテム名']
+        get_price_split.with_options(name=item_name).submit(session, df, today, hour)
+    session.close()
+
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_weapon():
@@ -138,9 +155,14 @@ async def get_price_weapon():
     hour = datetime.now(JST).strftime('%H')
     # postgresqlからアイテムのメタデータを取得
     df_weapon = load_psql("select * from metadata.item_name where 種類 = '武器'")
-    for _,df in df_weapon.iterrows():
+    # dqxのページにログイン
+    session = login_dqx()
+    for _, df in df_weapon.iterrows():
         # 出品情報を取得
-        get_price_split.submit(df, today, hour)
+        item_name = df['アイテム名']
+        get_price_split.with_options(name=item_name).submit(session, df, today, hour)
+    session.close()
+
 
 @flow(log_prints=True, task_runner=DaskTaskRunner())
 async def get_price_armor():
@@ -148,10 +170,15 @@ async def get_price_armor():
     today = datetime.now(JST).strftime('%Y/%m/%d')
     hour = datetime.now(JST).strftime('%H')
     # postgresqlからアイテムのメタデータを取得
-    df_dougu = load_psql("select * from metadata.item_name where 種類 = '武器'")
-    for _,df in df_dougu.iterrows():
+    df_armor = load_psql("select * from metadata.item_name where 種類 = '防具'")
+    # dqxのページにログイン
+    session = login_dqx()
+    for _, df in df_armor.iterrows():
         # 出品情報を取得
-        get_price_split.submit(df, today, hour)
+        item_name = df['アイテム名']
+        get_price_split.with_options(name=item_name).submit(session, df, today, hour)
+    session.close()
+
 
 if __name__ == "__main__":
     asyncio.run(get_price())

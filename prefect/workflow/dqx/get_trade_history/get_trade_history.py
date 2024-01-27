@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 import pandas as pd
 from prefect import flow, task
+import re
 from time import sleep
 import datetime
 from datetime import datetime, timedelta
@@ -12,7 +13,7 @@ from common.login_dqx import login_dqx
 
 
 @task(retries=3, retry_delay_seconds=5)
-def get_trade_buy(driver):
+def get_trade_buy(session):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/purchasehistory/page/{pagenum}"
     pagenum = 0
@@ -20,7 +21,7 @@ def get_trade_buy(driver):
     trade_day = yesterday
     while trade_day == yesterday:
         sleep(2)
-        target_response = session.get(url.format(pagenum, pagenum))
+        target_response = session.get(url.format(pagenum=pagenum))
         if target_response.ok:
             page_content = target_response.text
         else:
@@ -59,7 +60,7 @@ def get_trade_buy(driver):
     return df
 
 @task(retries=3, retry_delay_seconds=5)
-def get_trade_sell(driver):
+def get_trade_sell(session):
     exhibition_data = []
     url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/page/{pagenum}"
     pagenum = 0
@@ -67,7 +68,7 @@ def get_trade_sell(driver):
     trade_day = yesterday
     while trade_day == yesterday:
         sleep(2)
-        target_response = session.get(url.format(pagenum, pagenum))
+        target_response = session.get(url.format(pagenum=pagenum))
         if target_response.ok:
             page_content = target_response.text
         else:
@@ -78,7 +79,9 @@ def get_trade_sell(driver):
         for row in rows[1:]:
             sleep(0.1)
             cols = row.find_all('td')
+            # アイテム名の列を取得
             first_col = cols[0].text.strip()
+            # 道具以外の場合はアイテム名以外の情報が数行で含まている
             first_col_list = first_col.split('\n')
             if len(first_col_list) == 1:
                 item_type = "どうぐ"
@@ -88,8 +91,12 @@ def get_trade_sell(driver):
                 item_type = "そうび"
                 item_name = first_col_list[0]
                 item_quality = first_col_list[1].split("：")[1]
+            # 取引した個数を取得
             item_count = int(cols[1].text.strip().replace('こ',''))
-            item_price = cols[2].text.strip().split("\n")[0].replace(",", "").rstrip("G")
+            # 取引した価格を取得
+            item_price_text = cols[2].text.strip()
+            # 正規表現を使用して数字のみを抽出
+            item_price = re.findall(r'\d+', item_price_text.replace(",", ""))[0]
             item_price = int(item_price) if item_price != "-- " else 0
             forth_col_list = cols[3].text.strip().split('\n')
             if len(forth_col_list) == 2:
@@ -112,15 +119,14 @@ def get_trade_sell(driver):
 
 @flow(log_prints=True)
 def get_trade_history():
-    url = "https://hiroba.dqx.jp/sc/character/484618740227/bazaar/entryhistory/"
     schema_name = "trade_history"
     # 購入情報を取得
-    session = login_dqx(url)
-    df_buy = get_trade_buy(driver)
-    save_to_postgresql(df_buy, "buy_history", schema_name)
+    session = login_dqx()
+    df_buy = get_trade_buy(session)
+    save_psql(df_buy, "buy_history", schema_name)
     # 売却情報を取得
-    session = login_dqx(url)
-    df_sell = get_trade_sell(driver)
+    session = login_dqx()
+    df_sell = get_trade_sell(session)
     save_psql(df_sell, "sell_history", schema_name)
 
 if __name__ == "__main__":
