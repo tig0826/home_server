@@ -3,17 +3,17 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: default
-  namespace: metallb-system
+  namespace: metallb
 spec:
   addresses:
-  - 192.168.0.150-192.168.0.160
+  - 192.168.0.150-192.168.0.180
   autoAssign: true
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: default
-  namespace: metallb-system
+  namespace: metallb
 spec:
   ipAddressPools:
   - default
